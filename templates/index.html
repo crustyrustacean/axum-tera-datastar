@@ -17,14 +17,16 @@
     </header>
 
     <main>
-      <form id="add-form">
+      <form id="add-form" method="post">
         <label for="item-input">Add item:</label>
         <input id="item-input" type="text" name="item" required autofocus />
         <button type="submit">Add</button>
       </form>
 
-      <ul id="item-list">
-      </ul>
+      {% if item is defined %}
+      <p>You added: {{ item }}</p>
+
+      {% endif %}
     </main>
 
     <script type="module" src="/static/datastar.js"></script>
