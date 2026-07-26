@@ -23,10 +23,11 @@
         <button type="submit">Add</button>
       </form>
 
-      {% if item is defined %}
-      <p>You added: {{ item }}</p>
-
-      {% endif %}
+      <ul id="item-list">
+        {% for item in items %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
     </main>
 
     <script type="module" src="/static/datastar.js"></script>

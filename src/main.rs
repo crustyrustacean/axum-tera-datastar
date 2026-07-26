@@ -25,13 +25,21 @@ struct NewItem {
 }
 
 #[debug_handler]
-async fn hello_world(
-    State(state): State<AppState>,
-    Form(new_item): Form<NewItem>,
-) -> Html<String> {
-    state.items.lock().unwrap().push(new_item.item);
+async fn show_page(State(state): State<AppState>) -> Html<String> {
+    let items = state.items.lock().unwrap();
     let mut context = Context::new();
-    context.insert("items", &state.items.lock().unwrap());
+    context.insert("items", &*items);
+
+    Html(state.templates.render("index.html", &context).unwrap())
+}
+
+#[debug_handler]
+async fn add_item(State(state): State<AppState>, Form(new_item): Form<NewItem>) -> Html<String> {
+    let mut items = state.items.lock().unwrap();
+    items.push(new_item.item);
+    let mut context = Context::new();
+    context.insert("items", &*items);
+
     Html(state.templates.render("index.html", &context).unwrap())
 }
 
@@ -70,7 +78,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let app = Router::new()
-        .route("/", get(hello_world))
+        .route("/", get(show_page).post(add_item))
         .nest_service("/static", ServeDir::new("static"))
         .with_state(app_state);
 
