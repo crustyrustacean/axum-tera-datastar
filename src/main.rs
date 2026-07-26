@@ -2,12 +2,17 @@
 
 use axum::{
     Router,
-    extract::{Form, State},
-    response::Html,
-    routing::get,
+    extract::State,
+    response::{
+        Html,
+        sse::{Event, Sse},
+    },
+    routing::{get, post},
 };
 use axum_macros::debug_handler;
+use datastar::{axum::ReadSignals, prelude::*};
 use serde::{Deserialize, Serialize};
+use std::convert::Infallible;
 use std::sync::{Arc, Mutex};
 use tera::{Context, Tera};
 use tokio::signal;
@@ -19,13 +24,13 @@ struct AppState {
     items: Arc<Mutex<Vec<String>>>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 struct NewItem {
     item: String,
 }
 
 #[debug_handler]
-async fn show_page(State(state): State<AppState>) -> Html<String> {
+async fn get_index_page(State(state): State<AppState>) -> Html<String> {
     let items = state.items.lock().unwrap();
     let mut context = Context::new();
     context.insert("items", &*items);
@@ -34,13 +39,18 @@ async fn show_page(State(state): State<AppState>) -> Html<String> {
 }
 
 #[debug_handler]
-async fn add_item(State(state): State<AppState>, Form(new_item): Form<NewItem>) -> Html<String> {
+async fn post_new_item_ds(
+    State(state): State<AppState>,
+    ReadSignals(new_item): ReadSignals<NewItem>,
+) -> Sse<impl tokio_stream::Stream<Item = Result<Event, Infallible>>> {
     let mut items = state.items.lock().unwrap();
-    items.push(new_item.item);
-    let mut context = Context::new();
-    context.insert("items", &*items);
+    items.push(new_item.item.clone());
 
-    Html(state.templates.render("index.html", &context).unwrap())
+    let patch = PatchElements::new(format!("<li>{}</li>", new_item.item))
+        .selector("#item-list")
+        .mode(ElementPatchMode::Append);
+
+    Sse::new(tokio_stream::once(Ok(patch.write_as_axum_sse_event())))
 }
 
 async fn shutdown_signal() {
@@ -78,7 +88,8 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let app = Router::new()
-        .route("/", get(show_page).post(add_item))
+        .route("/", get(get_index_page))
+        .route("/items", post(post_new_item_ds))
         .nest_service("/static", ServeDir::new("static"))
         .with_state(app_state);
 

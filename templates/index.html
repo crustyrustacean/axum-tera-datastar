@@ -17,9 +17,9 @@
     </header>
 
     <main>
-      <form id="add-form" method="post">
+      <form id="add-form" data-on:submit_prevent="@post('/items')">
         <label for="item-input">Add item:</label>
-        <input id="item-input" type="text" name="item" required autofocus />
+        <input id="item-input" type="text" data-bind:item required autofocus />
         <button type="submit">Add</button>
       </form>
 
