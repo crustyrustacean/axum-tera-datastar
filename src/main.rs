@@ -4,6 +4,7 @@ use axum::{Router, extract::State, response::Html, routing::get};
 use axum_macros::debug_handler;
 use tera::{Context, Tera};
 use tokio::signal;
+use tower_http::services::ServeDir;
 
 #[debug_handler]
 async fn hello_world(State(tera): State<Tera>) -> Html<String> {
@@ -41,7 +42,10 @@ async fn main() -> anyhow::Result<()> {
     let mut tera = Tera::default();
     tera.load_from_glob("templates/**/*.html")?;
 
-    let app = Router::new().route("/", get(hello_world)).with_state(tera);
+    let app = Router::new()
+        .route("/", get(hello_world))
+        .nest_service("/static", ServeDir::new("static"))
+        .with_state(tera);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await?;
 

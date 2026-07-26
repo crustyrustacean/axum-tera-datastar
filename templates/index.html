@@ -1,16 +1,32 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/static/screen.css"
+      media="screen"
+    />
+    <title>Hello World!</title>
+  </head>
+  <body>
     <header>
-        <h1>Hello, World!</h1>
+      <h1>Hello, World!</h1>
     </header>
+
     <main>
-        {{ message }}
+      <form id="add-form">
+        <label for="item-input">Add item:</label>
+        <input id="item-input" type="text" name="item" required autofocus />
+        <button type="submit">Add</button>
+      </form>
+
+      <ul id="item-list">
+      </ul>
     </main>
-</body>
+
+    <script type="module" src="/static/datastar.js"></script>
+  </body>
 </html>

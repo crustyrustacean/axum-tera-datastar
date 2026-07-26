@@ -1,6 +1,6 @@
 [package]
 name = "axum-tera-datastar"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 
 [dependencies]
@@ -9,3 +9,4 @@ axum = "0.8.9"
 axum-macros = "0.5.1"
 tera = { version = "2.1.0", features = ["fast", "glob_fs"] }
 tokio = { version = "1.53.1", features = ["full"] }
+tower-http = { version = "0.7.0", features = ["fs"] }

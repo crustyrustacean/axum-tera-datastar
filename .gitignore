@@ -1,5 +1,6 @@
 # Rho configuration
 .rho
+logs
 
 # Environment variables
 .env
