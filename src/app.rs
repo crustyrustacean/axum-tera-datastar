@@ -12,20 +12,16 @@ use tower_http::services::ServeDir;
 
 pub struct Application {
     listener: TcpListener,
-    app: Router,
+    router: Router,
 }
 
 impl Application {
-    pub async fn build(addr: &str, app_state: AppState) -> anyhow::Result<Self> {
+    pub async fn build(addr: String, app_state: AppState) -> anyhow::Result<Self> {
         let listener = TcpListener::bind(addr).await?;
 
-        let app = Router::new()
-            .route("/", get(get_index_page))
-            .route("/items", post(post_new_item_ds))
-            .nest_service("/static", ServeDir::new("static"))
-            .with_state(app_state);
+        let router = build_router(app_state);
 
-        Ok(Self { listener, app })
+        Ok(Self { listener, router })
     }
 
     pub fn port(&self) -> std::io::Result<u16> {
@@ -33,8 +29,16 @@ impl Application {
     }
 
     pub async fn run_until_stopped(self) -> std::io::Result<()> {
-        axum::serve(self.listener, self.app)
+        axum::serve(self.listener, self.router)
             .with_graceful_shutdown(shutdown_signal())
             .await
     }
+}
+
+pub fn build_router(state: AppState) -> Router {
+    Router::new()
+        .route("/", get(get_index_page))
+        .route("/items", post(post_new_item_ds))
+        .nest_service("/static", ServeDir::new("static"))
+        .with_state(state)
 }
