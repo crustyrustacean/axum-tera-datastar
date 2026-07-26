@@ -1,6 +1,6 @@
 [package]
 name = "axum-tera-datastar"
-version = "0.7.0"
+version = "0.8.0"
 edition = "2024"
 
 [[bin]]
@@ -17,4 +17,10 @@ serde = { version = "1.0.229", features = ["derive"] }
 tera = { version = "2.1.0", features = ["fast", "glob_fs"] }
 tokio = { version = "1.53.1", features = ["full"] }
 tokio-stream = "0.1.19"
-tower-http = { version = "0.7.0", features = ["fs"] }
+tower = "0.5.3"
+tower-http = { version = "0.7.0", features = ["fs", "request-id", "trace"] }
+tracing = { version = "0.1.41", features = ["log"] }
+tracing-bunyan-formatter = "0.3.10"
+tracing-log = "0.2.0"
+tracing-subscriber = { version = "0.3.19", features = [ "registry", "env-filter" ] }
+uuid = { version = "1.17.0", features = ["v4", "serde"] }

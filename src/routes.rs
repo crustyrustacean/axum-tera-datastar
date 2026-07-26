@@ -1,7 +1,7 @@
 // src/routes.rs
 
-pub mod get;
-pub mod post;
+pub mod index;
+pub mod items;
 
-pub use get::*;
-pub use post::*;
+pub use index::*;
+pub use items::*;
