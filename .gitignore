@@ -1,0 +1,8 @@
+# Rho configuration
+.rho
+
+# Environment variables
+.env
+
+# Build artifacts
+/target
