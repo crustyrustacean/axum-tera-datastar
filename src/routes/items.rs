@@ -54,7 +54,7 @@ pub async fn post_new_item_ds(
     items.push(new_item.item.clone());
     let id = items.len() - 1;
 
-    let patch = PatchElements::new(format!(r#"<li id-"item-{id}>{}<button data-on:click="@delete('/items/{id}')">Delete</button></li>"#, new_item.item))
+    let patch = PatchElements::new(format!(r#"<li id="item-{id}">{}<button data-on:click="@delete('/items/{id}')">Delete</button></li>"#, new_item.item))
         .selector("#item-list")
         .mode(ElementPatchMode::Append)
         .write_as_axum_sse_event();

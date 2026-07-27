@@ -23,12 +23,14 @@
         <button type="submit">Add</button>
       </form>
 
-      {% for item in items %}
+      <ul id="item-list">
+        {% for item in items %}
         <li id="item-{{ loop.index0 }}">
           {{ item }}
           <button data-on:click="@delete('/items/{{ loop.index0 }}')">Delete</button>
         </li>
       {% endfor %}
+      </ul>
     </main>
 
     <script type="module" src="/static/datastar.js"></script>
