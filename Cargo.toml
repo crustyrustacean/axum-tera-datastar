@@ -1,6 +1,6 @@
 [package]
 name = "axum-tera-datastar"
-version = "0.9.0"
+version = "0.10.0"
 edition = "2024"
 
 [[bin]]
@@ -15,6 +15,7 @@ config = { version = "0.15.25", default-features = false, features = ["toml"] }
 datastar = { version = "0.3.1", features = ["axum" ] }
 serde = { version = "1.0.229", features = ["derive"] }
 tera = { version = "2.1.0", features = ["fast", "glob_fs"] }
+thiserror = "2.0.19"
 tokio = { version = "1.53.1", features = ["full"] }
 tokio-stream = "0.1.19"
 tower = "0.5.3"

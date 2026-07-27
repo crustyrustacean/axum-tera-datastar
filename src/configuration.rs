@@ -43,7 +43,6 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     settings.try_deserialize::<Settings>()
 }
 
-
 pub enum Environment {
     Local,
     Production,
@@ -71,4 +70,3 @@ impl TryFrom<String> for Environment {
         }
     }
 }
-

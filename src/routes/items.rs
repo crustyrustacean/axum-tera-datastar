@@ -1,12 +1,40 @@
 // src/post.rs
 
 use crate::AppState;
-use axum::extract::State;
-use axum::response::sse::{Event, Sse};
+use crate::utils::error_chain_fmt;
+use axum::response::{
+    IntoResponse, Response,
+    sse::{Event, Sse},
+};
+use axum::{extract::State, http::StatusCode};
 use axum_macros::debug_handler;
 use datastar::{axum::ReadSignals, prelude::*};
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
+
+#[derive(thiserror::Error)]
+pub enum ItemsError {
+    #[error("shared state lock poisoned")]
+    StateLock,
+    #[error("template rendering failed")]
+    Template(#[from] tera::Error),
+}
+
+impl std::fmt::Debug for ItemsError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        error_chain_fmt(self, f)
+    }
+}
+
+impl IntoResponse for ItemsError {
+    fn into_response(self) -> Response {
+        tracing::error!(error = ?self, "request failed");
+        let status = match self {
+            ItemsError::StateLock | ItemsError::Template(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        };
+        (status, "Something went wrong.").into_response()
+    }
+}
 
 #[derive(Clone, Deserialize, Serialize)]
 pub struct NewItem {
@@ -17,7 +45,7 @@ pub struct NewItem {
 pub async fn post_new_item_ds(
     State(state): State<AppState>,
     ReadSignals(new_item): ReadSignals<NewItem>,
-) -> Sse<impl tokio_stream::Stream<Item = Result<Event, Infallible>>> {
+) -> Result<Sse<impl tokio_stream::Stream<Item = Result<Event, Infallible>>>, ItemsError> {
     let mut items = state.items.lock().unwrap();
     items.push(new_item.item.clone());
 
@@ -28,5 +56,7 @@ pub async fn post_new_item_ds(
 
     let clear = PatchSignals::new(r#"{"item":""}"#).write_as_axum_sse_event();
 
-    Sse::new(tokio_stream::iter(vec![Ok(patch), Ok(clear)]))
+    let sse_event = Sse::new(tokio_stream::iter(vec![Ok(patch), Ok(clear)]));
+
+    Ok(sse_event)
 }

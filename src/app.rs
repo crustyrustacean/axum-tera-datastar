@@ -44,7 +44,7 @@ impl Application {
             .await?;
 
         tracing::info!("shutdown complete");
-        
+
         Ok(())
     }
 }
