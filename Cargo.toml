@@ -1,6 +1,6 @@
 [package]
 name = "axum-tera-datastar"
-version = "0.10.1"
+version = "0.11.0"
 edition = "2024"
 
 [[bin]]
@@ -25,3 +25,7 @@ tracing-bunyan-formatter = "0.3.10"
 tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.19", features = [ "registry", "env-filter" ] }
 uuid = { version = "1.17.0", features = ["v4", "serde"] }
+
+[dev-dependencies]
+reqwest = { version = "0.13.2", features = [ "json" ] }
+
