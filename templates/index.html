@@ -25,9 +25,9 @@
 
       <ul id="item-list">
         {% for item in items %}
-        <li id="item-{{ loop.index0 }}">
-          {{ item }}
-          <button data-on:click="@delete('/items/{{ loop.index0 }}')">Delete</button>
+        <li id="item-{{ item.id }}">
+          {{ item.text }}
+          <button data-on:click="@delete('/items/{{ item.id }}')">Delete</button>
         </li>
       {% endfor %}
       </ul>

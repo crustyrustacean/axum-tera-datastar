@@ -1,7 +1,7 @@
 // src/post.rs
 
-use crate::AppState;
 use crate::utils::error_chain_fmt;
+use crate::{AppState, Item};
 use axum::extract::Path;
 use axum::response::{
     IntoResponse, Response,
@@ -50,9 +50,18 @@ pub async fn post_new_item_ds(
     State(state): State<AppState>,
     ReadSignals(new_item): ReadSignals<NewItem>,
 ) -> Result<Sse<impl tokio_stream::Stream<Item = Result<Event, Infallible>>>, ItemsError> {
+    let id = {
+        let mut next = state.next_id.lock().map_err(|_| ItemsError::StateLock)?;
+        let id = *next;
+        *next += 1;
+        id
+    };
+
     let mut items = state.items.lock().map_err(|_| ItemsError::StateLock)?;
-    items.push(new_item.item.clone());
-    let id = items.len() - 1;
+    items.push(Item {
+        id,
+        text: new_item.item.clone(),
+    });
 
     let patch = PatchElements::new(format!(r#"<li id="item-{id}">{}<button data-on:click="@delete('/items/{id}')">Delete</button></li>"#, new_item.item))
         .selector("#item-list")
@@ -73,11 +82,11 @@ pub async fn delete_item_ds(
 ) -> Result<Sse<impl tokio_stream::Stream<Item = Result<Event, Infallible>>>, ItemsError> {
     let mut items = state.items.lock().map_err(|_| ItemsError::StateLock)?;
 
-    if id >= items.len() {
+    let Some(pos) = items.iter().position(|item| item.id == id as u64) else {
         return Err(ItemsError::NotFound);
-    }
+    };
 
-    items.remove(id);
+    items.remove(pos);
 
     let patch = PatchElements::new_remove(format!("#item-{id}")).write_as_axum_sse_event();
 
