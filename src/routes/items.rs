@@ -46,7 +46,7 @@ pub async fn post_new_item_ds(
     State(state): State<AppState>,
     ReadSignals(new_item): ReadSignals<NewItem>,
 ) -> Result<Sse<impl tokio_stream::Stream<Item = Result<Event, Infallible>>>, ItemsError> {
-    let mut items = state.items.lock().unwrap();
+    let mut items = state.items.lock().map_err(|_| ItemsError::StateLock)?;
     items.push(new_item.item.clone());
 
     let patch = PatchElements::new(format!("<li>{}</li>", new_item.item))
