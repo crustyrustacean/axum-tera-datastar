@@ -1,13 +1,13 @@
 // src/app.rs
 
 use crate::AppState;
-use crate::routes::{health_check, get_index_page, post_new_item_ds};
+use crate::routes::{health_check, delete_item_ds, get_index_page, post_new_item_ds};
 use crate::shutdown_signal;
 use crate::telemetry::{MakeRequestUuid, request_span};
 use axum::{
     Router,
     http::HeaderName,
-    routing::{get, post},
+    routing::{delete, get, post},
 };
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
@@ -56,6 +56,7 @@ pub fn build_router(state: AppState) -> Router {
         .route("/", get(get_index_page))
         .route("/health_check", get(health_check))
         .route("/items", post(post_new_item_ds))
+        .route("/items/{id}", delete(delete_item_ds))
         .layer(
             ServiceBuilder::new()
                 .layer(SetRequestIdLayer::new(

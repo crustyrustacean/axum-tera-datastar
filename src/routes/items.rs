@@ -2,6 +2,7 @@
 
 use crate::AppState;
 use crate::utils::error_chain_fmt;
+use axum::extract::Path;
 use axum::response::{
     IntoResponse, Response,
     sse::{Event, Sse},
@@ -57,6 +58,20 @@ pub async fn post_new_item_ds(
     let clear = PatchSignals::new(r#"{"item":""}"#).write_as_axum_sse_event();
 
     let sse_event = Sse::new(tokio_stream::iter(vec![Ok(patch), Ok(clear)]));
+
+    Ok(sse_event)
+}
+
+#[debug_handler]
+pub async fn delete_item_ds(
+    State(state): State<AppState>,
+    Path(id): Path<usize>,
+) -> Result<Sse<impl tokio_stream::Stream<Item = Result<Event, Infallible>>>, ItemsError> {
+    let mut items = state.items.lock().map_err(|_| ItemsError::StateLock)?;
+    items.remove(id);
+    let patch = PatchElements::new_remove(format!("#item-{id}")).write_as_axum_sse_event();
+
+    let sse_event = Sse::new(tokio_stream::iter(vec![Ok(patch)]));
 
     Ok(sse_event)
 }

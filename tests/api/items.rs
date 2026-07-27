@@ -25,3 +25,33 @@ async fn post_new_item_returns_append_patch_and_clears_signal() {
     assert!(body.contains("data: elements <li>fish</li>"));
     assert!(body.contains("event: datastar-patch-signals"));
 }
+
+#[tokio::test]
+async fn posted_item_appears_in_index_list() {
+    // Arrange
+    let app = spawn_app().await;
+
+    // Act
+    let _response = app
+        .api_client
+        .post(format!("{}/items", &app.address))
+        .json(&serde_json::json!({"item": "fish"}))
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    let body = app
+        .api_client
+        .get(&app.address)
+        .send()
+        .await
+        .expect("Failed to execute request")
+        .text()
+        .await
+        .unwrap();
+
+    // Assert
+    assert!(body.contains("<li>fish</li>"));
+
+
+}
