@@ -12,7 +12,8 @@ pub struct AppState {
 impl AppState {
     pub fn new() -> Self {
         let mut tera = Tera::default();
-        tera.load_from_glob("templates/**/*.html").expect("Unable to load the Tera templates.");
+        tera.load_from_glob("templates/**/*.html")
+            .expect("Unable to load the Tera templates.");
 
         Self {
             templates: tera,
