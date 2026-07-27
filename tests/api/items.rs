@@ -52,6 +52,4 @@ async fn posted_item_appears_in_index_list() {
 
     // Assert
     assert!(body.contains("<li>fish</li>"));
-
-
 }

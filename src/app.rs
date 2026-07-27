@@ -1,7 +1,7 @@
 // src/app.rs
 
 use crate::AppState;
-use crate::routes::{health_check, delete_item_ds, get_index_page, post_new_item_ds};
+use crate::routes::{delete_item_ds, get_index_page, health_check, post_new_item_ds};
 use crate::shutdown_signal;
 use crate::telemetry::{MakeRequestUuid, request_span};
 use axum::{

@@ -1,7 +1,7 @@
 // tests/api/helpers.rs
 
-use axum_tera_datastar::Application;
 use axum_tera_datastar::AppState;
+use axum_tera_datastar::Application;
 use axum_tera_datastar::configuration::get_configuration;
 use axum_tera_datastar::telemetry::{get_subscriber, init_subscriber};
 use std::sync::LazyLock;
@@ -30,14 +30,15 @@ pub async fn spawn_app() -> TestApp {
     LazyLock::force(&TRACING);
     let app_state = AppState::default();
     let configuration = get_configuration().expect("Failed to read configuration");
-    let app_address = format!(
-        "{}:{}",
-        configuration.application.host, 0
-    );
+    let app_address = format!("{}:{}", configuration.application.host, 0);
 
-    let application = Application::build(&app_address, app_state).await.expect("Unable to build the application");
+    let application = Application::build(&app_address, app_state)
+        .await
+        .expect("Unable to build the application");
 
-    let application_port = application.port().expect("Unable to obtain the application port");
+    let application_port = application
+        .port()
+        .expect("Unable to obtain the application port");
     let _ = tokio::spawn(application.run_until_stopped());
 
     let client = reqwest::Client::builder()
@@ -52,5 +53,4 @@ pub async fn spawn_app() -> TestApp {
     };
 
     test_app
-
 }
