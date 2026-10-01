@@ -24,12 +24,7 @@
       </form>
 
       <ul id="item-list">
-        {% for item in items %}
-        <li id="item-{{ item.id }}">
-          {{ item.text }}
-          <button data-on:click="@delete('/items/{{ item.id }}')">Delete</button>
-        </li>
-      {% endfor %}
+        {% for item in items %}{% include "item.html" %}{% endfor %}
       </ul>
     </main>
 

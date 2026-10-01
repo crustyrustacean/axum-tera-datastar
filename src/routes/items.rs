@@ -1,5 +1,4 @@
 // src/post.rs
-
 use crate::utils::error_chain_fmt;
 use crate::{AppState, Item};
 use axum::extract::Path;
@@ -12,6 +11,7 @@ use axum_macros::debug_handler;
 use datastar::{axum::ReadSignals, prelude::*};
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
+use tera::Context;
 
 #[derive(thiserror::Error)]
 pub enum ItemsError {
@@ -45,6 +45,24 @@ pub struct NewItem {
     item: String,
 }
 
+/// Render a single item fragment via Tera.
+///
+/// This is the single source of truth for the `<li>` markup: `index.html` includes
+/// the same partial for the server-rendered page, so the initial render and the SSE
+/// patch can never disagree. Routing both through Tera also means user input is
+/// escaped by the same rules on both paths - do not hand-build this HTML.
+fn render_item(state: &AppState, id: u64, text: &str) -> Result<String, ItemsError> {
+    let mut context = Context::new();
+    context.insert(
+        "item",
+        &Item {
+            id,
+            text: text.to_string(),
+        },
+    );
+    Ok(state.templates.render("item.html", &context)?)
+}
+
 #[debug_handler]
 pub async fn post_new_item_ds(
     State(state): State<AppState>,
@@ -63,7 +81,7 @@ pub async fn post_new_item_ds(
         text: new_item.item.clone(),
     });
 
-    let patch = PatchElements::new(format!(r#"<li id="item-{id}">{}<button data-on:click="@delete('/items/{id}')">Delete</button></li>"#, new_item.item))
+    let patch = PatchElements::new(render_item(&state, id, &new_item.item)?)
         .selector("#item-list")
         .mode(ElementPatchMode::Append)
         .write_as_axum_sse_event();

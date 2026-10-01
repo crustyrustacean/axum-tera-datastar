@@ -1,5 +1,4 @@
 // tests/api/items.rs
-
 use crate::helpers::spawn_app;
 
 #[tokio::test]
@@ -52,7 +51,7 @@ async fn posted_item_appears_in_index_list() {
         .await
         .unwrap();
 
-    // Assert — the template renders the li tag and the text on separate lines
+    // Assert — the shared item partial supplies both the id and the text
     assert!(body.contains(r#"<li id="item-0">"#));
     assert!(body.contains("fish"));
 }
@@ -111,4 +110,45 @@ async fn deleting_a_missing_item_returns_404() {
 
     // Assert — a stale id is a client error, not a server failure
     assert_eq!(response.status(), 404);
+}
+
+#[tokio::test]
+async fn item_text_is_escaped_in_the_sse_patch() {
+    // Arrange
+    let app = spawn_app().await;
+    let payload = r#"<img src=x onerror=alert(1)>"#;
+
+    // Act
+    let response = app
+        .api_client
+        .post(format!("{}/items", &app.address))
+        .json(&serde_json::json!({ "item": payload }))
+        .send()
+        .await
+        .expect("Failed to execute request.");
+    let sse_body = response.text().await.unwrap();
+
+    // Assert — the patch carries escaped text, never raw markup. The SSE path and the
+    // server-rendered page must agree, or a stored payload runs for whoever loads the page.
+    assert!(
+        !sse_body.contains(payload),
+        "raw payload leaked into the SSE patch: {sse_body}"
+    );
+    assert!(sse_body.contains("&lt;img src=x onerror=alert(1)&gt;"));
+
+    // And the server-rendered page escapes it identically.
+    let page = app
+        .api_client
+        .get(&app.address)
+        .send()
+        .await
+        .expect("Failed to execute request")
+        .text()
+        .await
+        .unwrap();
+    assert!(
+        !page.contains(payload),
+        "raw payload leaked into the page: {page}"
+    );
+    assert!(page.contains("&lt;img src=x onerror=alert(1)&gt;"));
 }

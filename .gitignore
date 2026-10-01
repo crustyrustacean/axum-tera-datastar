@@ -2,6 +2,9 @@
 .rho
 logs
 
+# IDE configuration
+.zed
+
 # Environment variables
 .env
 
